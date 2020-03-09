@@ -4,6 +4,7 @@ const utility = require("./services/utility")
 const validation = require("./services/validation")
 const validate = require('express-validation');
 const {uploads} = require('./multer/upload_file')
+const fileParser = require('express-multipart-file-parser')
 
 
 
@@ -16,7 +17,7 @@ module.exports = function(app, express) {
     //*********************** Auth Routes *************************//
     apiRoutes.post("/register", validate(validation.register), user.register)
     apiRoutes.get("/verify/:id",user.verify)
-    apiRoutes.post("/grievance/add", utility.authenticateMiddleware, uploads.array('documents',10),grievance.addGrievance)
+    apiRoutes.post("/grievance/add", utility.authenticateMiddleware,fileParser ,grievance.addGrievance)
 
     apiRoutes.post("/committee/register", user.registerCommittee)
     
