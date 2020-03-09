@@ -22,7 +22,8 @@ mongoose.set('useCreateIndex', true)
 mongoose.set('debug', true);
 app.use(morgan("tiny"))
 app.use(bodyParser.json());
-app.use("/images", express.static(process.env.IMAGE_URL + "uploads/"));
+console.log( __dirname + "/multer/uploads/")
+app.use("/images", express.static( __dirname + "/multer/uploads/vnnair39/grievance1/"));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cors());
 // app.use(fileupload())

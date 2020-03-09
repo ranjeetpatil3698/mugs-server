@@ -16,8 +16,11 @@ module.exports = function(app, express) {
 
     //*********************** Auth Routes *************************//
     apiRoutes.post("/register", validate(validation.register), user.register)
+    apiRoutes.post("/login", validate(validation.login), user.login)
     apiRoutes.get("/verify/:id",user.verify)
     apiRoutes.post("/grievance/add", utility.authenticateMiddleware,fileParser ,grievance.addGrievance)
+    apiRoutes.get("/grievances", utility.authenticateMiddleware,grievance.grievances)
+
 
     apiRoutes.post("/committee/register", user.registerCommittee)
     
