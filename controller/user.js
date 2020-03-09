@@ -147,4 +147,3 @@ module.exports.registerCommittee = (req, res) => {
         }
     })
 }
-
