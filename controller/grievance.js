@@ -1,4 +1,3 @@
-const { uploads } = require('../multer/upload_file')
 const { studentModel } = require('../model/user')
 const grievanceModel = require('../model/grievance')
 const moment = require('moment')
@@ -11,8 +10,6 @@ module.exports.addGrievance = async (req, res) => {
     var email_id = req.decoded.email
     if (req.decoded.userType === 'student') {
         grievanceModel.collection.countDocuments({ from: email_id }, (err, count) => {
-            const local = "./multer/uploads/" + email_id.split('@')[0] + '/grievance' + String(count + 1);
-            console.log(local)
             const { fieldname, originalname, encoding, mimetype, buffer } = req.files[0];
             if (mimetype !== "image/jpeg" && mimetype !== "image/png") {
                 return res.status(400).json({ error: "Wrong file type submitted" });
@@ -21,27 +18,24 @@ module.exports.addGrievance = async (req, res) => {
                 const imageExtension = originalname.split(".")[
                     originalname.split(".").length - 1
                 ];
+                let local = './uploads'
                 const imageFileName = `${v4()}.${imageExtension}`;
                 const filepath = path.join(local, imageFileName)
-                if (!fs.existsSync(local)) {
-                    fs.mkdirSync(local, { recursive: true })
-                }
+                console.log(filepath)
                 fs.writeFileSync(filepath, buffer)
-                const files = fs.readdirSync(local);
-                let all_files_path = []
-                files.forEach(file => {
-                    all_files_path.push(local + '/' + file)
-                })
                 studentModel.findOne({ email: email_id }, function (err, data) {
                     const object = {
                         title: req.body.title,
                         from: email_id,
                         author: data,
                         subtitle: req.body.subtitle,
-                        documents: all_files_path,
+                        documents: "http://localhost:2000/images/" + imageFileName,
                         status: -1,
                         description: req.body.description,
-                        timestamp: new Date().getTime()
+                        timestamp: new Date().getTime(),
+                        alloted_on: null,
+                        solved_on: null,
+
                     }
                     grievanceModel(object).save((data) => {
                         return res.send(data)
@@ -50,6 +44,7 @@ module.exports.addGrievance = async (req, res) => {
 
             }
             catch (err) {
+                res.send(err)
             }
 
         })
@@ -63,7 +58,7 @@ module.exports.addGrievance = async (req, res) => {
 module.exports.grievances = async (req, res) => {
     try {
         if (req.decoded.userType === "secretary") {
-            var grievances = await grievanceModel.find({}).sort({ 'timestamp': 'asc' })
+            var grievances = await grievanceModel.find({ $or: [{ status: -1 }, {status: -2}] }).sort({ 'timestamp': 'asc' })
             res.json({ grievances, msg: 'Grievances fetched succesfully' })
         }
         res.send('not authorized')
@@ -71,6 +66,67 @@ module.exports.grievances = async (req, res) => {
     catch (err) {
         res.status(400).send({
             error: 'Could not fetch grievances'
+        })
+    }
+}
+
+module.exports.selected_grievances = async (req, res) => {
+    try {
+        if (req.decoded.userType === "secretary") {
+            var grievances_status_0 = await grievanceModel.find({ status: 0 }).sort({ 'timestamp': 1 })
+            res.json(grievances_status_0)
+        }
+    }
+    catch (err) {
+        res.status(400).send({
+            error: 'Could not fetch grievances which are under process'
+        })
+    }
+}
+
+
+module.exports.deselect_grievance = async (req, res) => {
+    const { grievanceId } = req.body;
+    try {
+        if (req.decoded.userType === "secretary") {
+            grievance = await grievanceModel.updateOne({ _id: grievanceId }, { $set: { "status": -1 } })
+            res.send('deselected' + grievanceId)
+        }
+    }
+    catch (err) {
+        res.status(400).send({
+            error: 'Could not fetch grievances which are under process'
+        })
+    }
+}
+
+
+module.exports.select_grievance = async (req, res) => {
+    const { grievanceId } = req.body;
+    try {
+        if (req.decoded.userType === "secretary") {
+            grievance = await grievanceModel.updateOne({ _id: grievanceId }, { $set: { "status": 0 } })
+            res.send('selected' + grievanceId)
+        }
+    }
+    catch (err) {
+        res.status(400).send({
+            error: 'Could not fetch grievances which are under process'
+        })
+    }
+}
+
+module.exports.allocate_date = async (req, res) => {
+    const { grievanceId, alloted_date } = req.body;
+    try {
+        if (req.decoded.userType === "secretary") {
+            grievance = await grievanceModel.updateOne({ _id: grievanceId }, { $set: { "alloted_on": alloted_date , "status": 1} })
+            res.send('selected' + grievanceId)
+        }
+    }
+    catch (err) {
+        res.status(400).send({
+            error: 'Could not fetch grievances which are under process'
         })
     }
 }

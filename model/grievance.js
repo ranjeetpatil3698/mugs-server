@@ -16,8 +16,9 @@ const grievanceSchema = mongoose.Schema({
             timestamp:Date
         },{},...]
     */
-    timestamp: Date
-
+    timestamp: Date,
+    alloted_on: Number,
+    solved_on: Number
 });
 
 

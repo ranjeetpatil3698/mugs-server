@@ -23,7 +23,7 @@ mongoose.set('debug', true);
 app.use(morgan("tiny"))
 app.use(bodyParser.json());
 console.log( __dirname + "/multer/uploads/")
-app.use("/images", express.static( __dirname + "/multer/uploads/vnnair39/grievance1/"));
+app.use("/images", express.static( __dirname + "/uploads"));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cors());
 // app.use(fileupload())
