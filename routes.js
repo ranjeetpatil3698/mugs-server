@@ -20,9 +20,11 @@ module.exports = function (app, express) {
     apiRoutes.post("/grievance/add", utility.authenticateMiddleware, fileParser, grievance.addGrievance)
     apiRoutes.get("/grievances", utility.authenticateMiddleware, grievance.grievances)
     apiRoutes.get("/grievances/selected", utility.authenticateMiddleware, grievance.selected_grievances)
+    apiRoutes.get("/grievances/process", utility.authenticateMiddleware, grievance.underprocess_grievances)
     apiRoutes.post("/grievance/deselect", utility.authenticateMiddleware, grievance.deselect_grievance)
     apiRoutes.post("/grievance/select", utility.authenticateMiddleware, grievance.select_grievance)
     apiRoutes.post("/grievance/date", utility.authenticateMiddleware, grievance.allocate_date)
+    apiRoutes.post("/grievance/reject", utility.authenticateMiddleware, grievance.reject)
 
 
 

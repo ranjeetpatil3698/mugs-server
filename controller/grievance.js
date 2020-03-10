@@ -3,6 +3,7 @@ const grievanceModel = require('../model/grievance')
 const moment = require('moment')
 const { v4 } = require("uuid");
 const fs = require("fs");
+const utility = require("../services/utility");
 
 
 module.exports.addGrievance = async (req, res) => {
@@ -84,6 +85,20 @@ module.exports.selected_grievances = async (req, res) => {
     }
 }
 
+module.exports.underprocess_grievances = async (req, res) => {
+    try {
+        if (req.decoded.userType === "secretary") {
+            var grievances_status_0 = await grievanceModel.find({ status: 1 }).sort({ 'timestamp': 1 })
+            res.json(grievances_status_0)
+        }
+    }
+    catch (err) {
+        res.status(400).send({
+            error: 'Could not fetch grievances which are under process'
+        })
+    }
+}
+
 
 module.exports.deselect_grievance = async (req, res) => {
     const { grievanceId } = req.body;
@@ -117,14 +132,52 @@ module.exports.select_grievance = async (req, res) => {
 }
 
 module.exports.allocate_date = async (req, res) => {
-    const { grievanceId, alloted_date } = req.body;
+    const { grievanceId, alloted_date, email, date } = req.body;
     try {
         if (req.decoded.userType === "secretary") {
             grievance = await grievanceModel.updateOne({ _id: grievanceId }, { $set: { "alloted_on": alloted_date , "status": 1} })
+            try{
+                console.log(email)
+                const mssg = {
+                    to: email,
+                    from: 'vnnair39@gmail.com',
+                    subject: 'Your Grievance is under Evaluatuion by the board',
+                    text: 'The board has allocated date ' + date + ' to resolve your grievance.',
+                    // html: tag
+                }
+                utility.mail(mssg)
+            }catch(err){
+                console.log(err)
+            }
             res.send('selected' + grievanceId)
         }
     }
     catch (err) {
+        res.status(400).send({
+            error: 'Could not fetch grievances which are under process'
+        })
+    }
+}
+
+
+module.exports.reject = async (req, res) => {
+    const { grievanceId, email} = req.body;
+    try {
+        if (req.decoded.userType === "secretary") {
+            grievance = await grievanceModel.deleteOne({ _id: grievanceId })
+            const mssg = {
+                to: email,
+                from: 'vnnair39@gmail.com',
+                subject: 'Your Grievance has been rejected by the board',
+                text: "The board either found the grievance to be irrelavant or something that the board couldn't solve",
+                // html: "<h3></h3>"
+            }
+            utility.mail(mssg)
+            res.send('deleted' + grievanceId)
+        }
+    }
+    catch (err) {
+        console.log(err)
         res.status(400).send({
             error: 'Could not fetch grievances which are under process'
         })
